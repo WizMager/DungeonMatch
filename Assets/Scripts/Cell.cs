@@ -57,6 +57,15 @@ public class Cell : MonoBehaviour
                         }
                 }
         }
+
+        public Sprite SetImage
+        {
+                set
+                {
+                        if (cellImage.sprite == value) return;
+                        cellImage.sprite = value;
+                }
+        }
         
         private void Start()
         {
