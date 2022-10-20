@@ -136,93 +136,10 @@ public class CellsController : MonoBehaviour
         }
 
         #endregion
-
-        private void CheckMatches(Cell swappedCell)
-        {
-                var popId = new List<int> {swappedCell.Id};
-                var matchType = swappedCell.CellType;
-                var left = swappedCell.XNumber;
-                var right = _rowsCellsLength[0] - 1 - swappedCell.XNumber;
-                var up = swappedCell.YNumber;
-                var down = _rowsCellsLength.Length - 1 - swappedCell.YNumber;
-
-                #region HorizontalCheck
-
-                if (left > 0)
-                {
-                        for (int j = swappedCell.Id - 1; j >= swappedCell.Id - left; j--)
-                        {
-                                if (_cells[j].CellType == matchType)
-                                {
-                                        popId.Add(_cells[j].Id);    
-                                }
-                                else
-                                {
-                                        break;
-                                }
-                        }   
-                }
-
-                if (right < _rowsCellsLength[0] - 1)
-                {
-                        for (int i = swappedCell.Id + 1; i <= swappedCell.Id + right; i++)
-                        {
-                                if (_cells[i].CellType == matchType)
-                                {
-                                        popId.Add(_cells[i].Id);    
-                                }
-                                else
-                                {
-                                        break;
-                                }
-                        }     
-                }
-
-                #endregion
-
-                #region VerticalCheck
-
-                if (up > _rowsCellsLength.Length)
-                {
-                        for (int k = swappedCell.Id - _rowsCellsLength.Length; k >= 0; k -= _rowsCellsLength.Length)
-                        {
-                                if (_cells[k].CellType == matchType)
-                                {
-                                        popId.Add(_cells[k].Id);    
-                                }
-                                else
-                                {
-                                        break;
-                                }
-                        }   
-                }
-
-                if (down < _rowsCellsLength.Length * _rowsCellsLength[0] - _rowsCellsLength[0])
-                {
-                        for (int l = swappedCell.Id + _rowsCellsLength.Length; l <= _rowsCellsLength.Length * _rowsCellsLength[0]; l += _rowsCellsLength.Length)
-                        {
-                                if (_cells[l].CellType == matchType)
-                                {
-                                        popId.Add(_cells[l].Id);    
-                                }
-                                else
-                                {
-                                        break;
-                                }
-                        }     
-                }
-
-                #endregion
-
-                foreach (var i in popId)
-                {
-                        Debug.Log(i);
-                }
-        }
-
+        
         private List<Cell> StartCheck(Cell cell)
         {
-                var cellsList = new List<Cell> {cell};
+                var cellsList = new List<Cell>{cell};
                 
                 Recurs(cellsList, cellsList);
                 return cellsList;
@@ -230,14 +147,17 @@ public class CellsController : MonoBehaviour
 
         private void Recurs(List<Cell> neigh, List<Cell> cellsList)
         {
+                Debug.Log("Recurs");
+                if (neigh.Count <= 0) return;
                 foreach (var cell in neigh)
                 {
                         if (!cellsList.Contains(cell))
                         {
-                            cellsList.Add(cell);    
+                                cellsList.Add(cell);    
                         }
                         Recurs(CheckNeighborhoodCells(cell), cellsList);
-                }  
+                }
+
         }
         
         private List<Cell> CheckNeighborhoodCells(Cell cell)
@@ -245,32 +165,69 @@ public class CellsController : MonoBehaviour
                 var type = cell.CellType;
                 var x = cell.XNumber;
                 var y = cell.YNumber;
-                var cells = new List<Cell>{cell};
-                if (x > 0)
+                var cells = new List<Cell>();
+                if (x > 0 && x < _rowsCellsLength[0] - 1)
                 {
+                        Debug.Log($"{x} {y}");
                         if (_cellsCoord[(x - 1, y)].CellType == type)
                         {
-                                cells.Add(_cellsCoord[(x - 1, y)]); 
+                                if (!cells.Contains(cell))
+                                {
+                                        cells.Add(_cellsCoord[(x - 1, y)]);       
+                                }
                         }
-                }
-
-                if (_cellsCoord[(x + 1, y)].CellType == type)
-                {
-                        cells.Add(_cellsCoord[(x + 1, y)]); 
-                }
-
-                if (y > 0)
-                {
-                        if (_cellsCoord[(x , y - 1)].CellType == type)
+                        
+                        if (_cellsCoord[(x + 1, y)].CellType == type)
                         {
-                                cells.Add(_cellsCoord[(x, y - 1)]);  
+                                if (!cells.Contains(cell))
+                                {
+                                        cells.Add(_cellsCoord[(x + 1, y)]);       
+                                }
                         } 
                 }
+
+                // if (x < _rowsCellsLength[0] - 1)
+                // {
+                //         if (_cellsCoord[(x + 1, y)].CellType == type)
+                //         {
+                //                 if (!cells.Contains(cell))
+                //                 {
+                //                         cells.Add(_cellsCoord[(x + 1, y)]);       
+                //                 }
+                //         }    
+                // }
                 
-                if (_cellsCoord[(x , y + 1)].CellType == type)
+
+                if (y > 0 && y < _rowsCellsLength.Length - 1)
                 {
-                        cells.Add(_cellsCoord[(x, y + 1)]);  
+                        Debug.Log($"{x} {y}");
+                        if (_cellsCoord[(x , y - 1)].CellType == type)
+                        {
+                                if (!cells.Contains(cell))
+                                {
+                                        cells.Add(_cellsCoord[(x, y - 1)]);       
+                                }
+                        } 
+                        
+                        if (_cellsCoord[(x , y + 1)].CellType == type)
+                        {
+                                if (!cells.Contains(cell))
+                                {
+                                        cells.Add(_cellsCoord[(x, y + 1)]);      
+                                }
+                        } 
                 }
+
+                // if (y < _rowsCellsLength.Length - 1)
+                // {
+                //         if (_cellsCoord[(x , y + 1)].CellType == type)
+                //         {
+                //                 if (!cells.Contains(cell))
+                //                 {
+                //                         cells.Add(_cellsCoord[(x, y + 1)]);      
+                //                 }
+                //         }     
+                // }
 
                 return cells;
         }
