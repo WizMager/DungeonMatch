@@ -45,12 +45,11 @@ public class CellsController : MonoBehaviour
                 if (_selectedCells.Contains(selectedCell)) return;
                 if (_selectedCells.Count > 0)
                 {
-                        if (_selectedCells.Count > 2) return;
-                        if (ClosestCellsCheck(_selectedCells[0], selectedCell))
+                        if (SwapCellsAvailableCheck(_selectedCells[0], selectedCell))
                         {
                                 _selectedCells.Add(selectedCell);
                                 _cellsMove = true;
-                                ChangeCells(_selectedCells);
+                                SwapCells(_selectedCells);
                         }
                         else
                         {
@@ -64,7 +63,7 @@ public class CellsController : MonoBehaviour
                 }
         }
 
-        private void ChangeCells(List<Cell> selectedCells)
+        private void SwapCells(List<Cell> selectedCells)
         {
                 var cellOnePosition = selectedCells[0].Image.transform.position;
                 var cellTwoPosition = selectedCells[1].Image.transform.position;
@@ -86,11 +85,29 @@ public class CellsController : MonoBehaviour
                 _cellsMove = false;
         }
 
-        private bool ClosestCellsCheck(Cell inListCell, Cell newCell)
+        private bool SwapCellsAvailableCheck(Cell inListCell, Cell newCell)
         {
                 var listX = inListCell.XNumber;
                 var listY = inListCell.YNumber;
-                return listX + 1 == newCell.XNumber || listX - 1 == newCell.XNumber || listY + 1 == newCell.YNumber || listY - 1 == newCell.YNumber;
+                var newX = newCell.XNumber;
+                var newY = newCell.YNumber;
+                if (listX == newX)
+                {
+                        if (listY - 1 == newY || listY + 1 == newY)
+                        {
+                                return true;
+                        }   
+                }
+
+                if (listY == newY)
+                {
+                        if (listX - 1 == newX || listX + 1 == newX)
+                        {
+                                return true;
+                        } 
+                }
+                
+                return false;
         }
         
         private void OnDestroy()
