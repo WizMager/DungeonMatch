@@ -10,8 +10,10 @@ public class CellsController : MonoBehaviour
         [SerializeField] private Sprite[] cellSprites;
         [SerializeField] private float cellMoveTime;
         private readonly Dictionary<int, Cell> _cells = new();
+        private readonly Dictionary<(int x, int y), Cell> _cellsCoord = new ();
         private readonly List<Cell> _selectedCells = new();
         private bool _cellsMove;
+        private int[] _rowsCellsLength;
 
         private void Start()
         {
@@ -21,19 +23,31 @@ public class CellsController : MonoBehaviour
         private void Initialization(RowsContainerComponent rowsContainerValue)
         {
                 var rowsContainer = rowsContainerValue.GetRowsContainers;
+                _rowsCellsLength = new int[rowsContainer.Length];
                 for (int y = 0; y < rowsContainer.Length; y++)
                 {
                         var rowCells = rowsContainer[y].GetRowCells;
+                        _rowsCellsLength[y] = rowCells.Length;
                         for (int x = 0; x < rowCells.Length; x++)
                         {
                                 var cell = rowCells[x].GetComponent<Cell>();
                                 cell.XNumber = x;
                                 cell.YNumber = y;
                                 var id = x + y * rowCells.Length;
-                                cell.SetImage = cellSprites[Random.Range(1, cellSprites.Length)];
+                                var randomType = Random.Range(1, cellSprites.Length);
+                                cell.SetImage = cellSprites[randomType];
+                                cell.CellType = randomType switch
+                                {
+                                        1 => CellType.First,
+                                        2 => CellType.Second,
+                                        3 => CellType.Third,
+                                        4 => CellType.Fourth,
+                                        _ => cell.CellType
+                                };
                                 cell.Id = id;
                                 cell.OnCellClicked += OnCellClickedHandler;
                                 _cells.Add(id, cell);
+                                _cellsCoord.Add((x, y), cell);
                         }
                 }
         }
@@ -63,27 +77,7 @@ public class CellsController : MonoBehaviour
                 }
         }
 
-        private void SwapCells(List<Cell> selectedCells)
-        {
-                var cellOnePosition = selectedCells[0].Image.transform.position;
-                var cellTwoPosition = selectedCells[1].Image.transform.position;
-                var sequence = DOTween.Sequence();
-                sequence.Join(selectedCells[0].Image.transform.DOMove(cellTwoPosition, cellMoveTime));
-                sequence.Join(selectedCells[1].Image.transform.DOMove(cellOnePosition, cellMoveTime));
-                sequence.Play().OnComplete(OnCompleteMoveHandler);
-        }
-
-        private void OnCompleteMoveHandler()
-        {
-                var imageOne = _selectedCells[0].Image;
-                var imageTwo = _selectedCells[1].Image;
-                _selectedCells[0].Image = imageTwo;
-                _selectedCells[1].Image = imageOne;
-                imageOne.transform.SetParent(_selectedCells[1].transform);
-                imageTwo.transform.SetParent(_selectedCells[0].transform);
-                _selectedCells.Clear();
-                _cellsMove = false;
-        }
+        #region SwapCells
 
         private bool SwapCellsAvailableCheck(Cell inListCell, Cell newCell)
         {
@@ -110,6 +104,177 @@ public class CellsController : MonoBehaviour
                 return false;
         }
         
+        private void SwapCells(List<Cell> selectedCells)
+        {
+                var cellOnePosition = selectedCells[0].Image.transform.position;
+                var cellTwoPosition = selectedCells[1].Image.transform.position;
+                var sequence = DOTween.Sequence();
+                sequence.Join(selectedCells[0].Image.transform.DOMove(cellTwoPosition, cellMoveTime));
+                sequence.Join(selectedCells[1].Image.transform.DOMove(cellOnePosition, cellMoveTime));
+                sequence.Play().OnComplete(OnCompleteMoveHandler);
+        }
+
+        private void OnCompleteMoveHandler()
+        {
+                var imageOne = _selectedCells[0].Image;
+                var imageTwo = _selectedCells[1].Image;
+                var tempType = _selectedCells[0].CellType;
+                _selectedCells[0].Image = imageTwo;
+                _selectedCells[1].Image = imageOne;
+                imageOne.transform.SetParent(_selectedCells[1].transform);
+                imageTwo.transform.SetParent(_selectedCells[0].transform);
+                _selectedCells[0].CellType = _selectedCells[1].CellType;
+                _selectedCells[1].CellType = tempType;
+                //CheckMatches(_selectedCells[1]);
+                var list = StartCheck(_selectedCells[1]);
+                foreach (var cell in list)
+                {
+                        Debug.Log(cell.Id);
+                }
+                _selectedCells.Clear();
+                _cellsMove = false;
+        }
+
+        #endregion
+
+        private void CheckMatches(Cell swappedCell)
+        {
+                var popId = new List<int> {swappedCell.Id};
+                var matchType = swappedCell.CellType;
+                var left = swappedCell.XNumber;
+                var right = _rowsCellsLength[0] - 1 - swappedCell.XNumber;
+                var up = swappedCell.YNumber;
+                var down = _rowsCellsLength.Length - 1 - swappedCell.YNumber;
+
+                #region HorizontalCheck
+
+                if (left > 0)
+                {
+                        for (int j = swappedCell.Id - 1; j >= swappedCell.Id - left; j--)
+                        {
+                                if (_cells[j].CellType == matchType)
+                                {
+                                        popId.Add(_cells[j].Id);    
+                                }
+                                else
+                                {
+                                        break;
+                                }
+                        }   
+                }
+
+                if (right < _rowsCellsLength[0] - 1)
+                {
+                        for (int i = swappedCell.Id + 1; i <= swappedCell.Id + right; i++)
+                        {
+                                if (_cells[i].CellType == matchType)
+                                {
+                                        popId.Add(_cells[i].Id);    
+                                }
+                                else
+                                {
+                                        break;
+                                }
+                        }     
+                }
+
+                #endregion
+
+                #region VerticalCheck
+
+                if (up > _rowsCellsLength.Length)
+                {
+                        for (int k = swappedCell.Id - _rowsCellsLength.Length; k >= 0; k -= _rowsCellsLength.Length)
+                        {
+                                if (_cells[k].CellType == matchType)
+                                {
+                                        popId.Add(_cells[k].Id);    
+                                }
+                                else
+                                {
+                                        break;
+                                }
+                        }   
+                }
+
+                if (down < _rowsCellsLength.Length * _rowsCellsLength[0] - _rowsCellsLength[0])
+                {
+                        for (int l = swappedCell.Id + _rowsCellsLength.Length; l <= _rowsCellsLength.Length * _rowsCellsLength[0]; l += _rowsCellsLength.Length)
+                        {
+                                if (_cells[l].CellType == matchType)
+                                {
+                                        popId.Add(_cells[l].Id);    
+                                }
+                                else
+                                {
+                                        break;
+                                }
+                        }     
+                }
+
+                #endregion
+
+                foreach (var i in popId)
+                {
+                        Debug.Log(i);
+                }
+        }
+
+        private List<Cell> StartCheck(Cell cell)
+        {
+                var cellsList = new List<Cell> {cell};
+                
+                Recurs(cellsList, cellsList);
+                return cellsList;
+        }
+
+        private void Recurs(List<Cell> neigh, List<Cell> cellsList)
+        {
+                foreach (var cell in neigh)
+                {
+                        if (!cellsList.Contains(cell))
+                        {
+                            cellsList.Add(cell);    
+                        }
+                        Recurs(CheckNeighborhoodCells(cell), cellsList);
+                }  
+        }
+        
+        private List<Cell> CheckNeighborhoodCells(Cell cell)
+        {
+                var type = cell.CellType;
+                var x = cell.XNumber;
+                var y = cell.YNumber;
+                var cells = new List<Cell>{cell};
+                if (x > 0)
+                {
+                        if (_cellsCoord[(x - 1, y)].CellType == type)
+                        {
+                                cells.Add(_cellsCoord[(x - 1, y)]); 
+                        }
+                }
+
+                if (_cellsCoord[(x + 1, y)].CellType == type)
+                {
+                        cells.Add(_cellsCoord[(x + 1, y)]); 
+                }
+
+                if (y > 0)
+                {
+                        if (_cellsCoord[(x , y - 1)].CellType == type)
+                        {
+                                cells.Add(_cellsCoord[(x, y - 1)]);  
+                        } 
+                }
+                
+                if (_cellsCoord[(x , y + 1)].CellType == type)
+                {
+                        cells.Add(_cellsCoord[(x, y + 1)]);  
+                }
+
+                return cells;
+        }
+
         private void OnDestroy()
         {
                 foreach (var cell in _cells.Values)

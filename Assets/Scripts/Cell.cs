@@ -11,6 +11,7 @@ public class Cell : MonoBehaviour
         private int _xNumber;
         private int _yNumber;
         private int _id;
+        private CellType _cellType;
 
         public Image Image
         {
@@ -51,7 +52,6 @@ public class Cell : MonoBehaviour
                         }    
                 }
         }
-
         public int Id
         {
                 get => _id;
@@ -67,7 +67,6 @@ public class Cell : MonoBehaviour
                         }
                 }
         }
-
         public Sprite SetImage
         {
                 set
@@ -76,7 +75,16 @@ public class Cell : MonoBehaviour
                         Image.sprite = value;
                 }
         }
-        
+        public CellType CellType
+        {
+                get => _cellType;
+                set
+                {
+                        if (_cellType == value) return;
+                        _cellType = value;
+                }
+        }
+
         private void Start()
         {
                 Image = startCellImage;
