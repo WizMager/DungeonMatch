@@ -5,12 +5,22 @@ using UnityEngine.UI;
 public class Cell : MonoBehaviour
 {
         public Action<int> OnCellClicked;
-        [SerializeField] private Image cellImage;
+        [SerializeField] private Image startCellImage;
         [SerializeField] private Button cellButton;
+        private Image _image;
         private int _xNumber;
         private int _yNumber;
         private int _id;
 
+        public Image Image
+        {
+                get => _image;
+                set
+                {
+                        _image = value;
+                        cellButton.targetGraphic = _image;
+                }
+        }
         public int XNumber
         {
                 get => _xNumber;
@@ -62,13 +72,14 @@ public class Cell : MonoBehaviour
         {
                 set
                 {
-                        if (cellImage.sprite == value) return;
-                        cellImage.sprite = value;
+                        if (Image.sprite == value) return;
+                        Image.sprite = value;
                 }
         }
         
         private void Start()
         {
+                Image = startCellImage;
                 cellButton.onClick.AddListener(OnCellClickHandler);
         }
 
