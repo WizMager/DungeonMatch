@@ -43,6 +43,7 @@ public class CellsController : MonoBehaviour
                                         2 => CellType.Second,
                                         3 => CellType.Third,
                                         4 => CellType.Fourth,
+                                        5 => CellType.Fifth,
                                         _ => cell.CellType
                                 };
                                 cell.Id = id;
@@ -51,6 +52,7 @@ public class CellsController : MonoBehaviour
                                 _cellsCoord.Add((x, y), cell);
                         }
                 }
+                PopCells();
         }
 
         private void OnCellClickedHandler(int id)
@@ -105,18 +107,14 @@ public class CellsController : MonoBehaviour
                 return false;
         }
         
-        private void SwapCells(List<Cell> selectedCells)
+        private async void SwapCells(List<Cell> selectedCells)
         {
                 var cellOnePosition = selectedCells[0].Image.transform.position;
                 var cellTwoPosition = selectedCells[1].Image.transform.position;
                 var sequence = DOTween.Sequence();
                 sequence.Join(selectedCells[0].Image.transform.DOMove(cellTwoPosition, cellMoveTime));
                 sequence.Join(selectedCells[1].Image.transform.DOMove(cellOnePosition, cellMoveTime));
-                sequence.Play().OnComplete(OnCompleteMoveHandler);
-        }
-
-        private void OnCompleteMoveHandler()
-        {
+                await sequence.Play().AsyncWaitForCompletion();
                 var imageOne = _selectedCells[0].Image;
                 var imageTwo = _selectedCells[1].Image;
                 var tempType = _selectedCells[0].CellType;
@@ -126,14 +124,45 @@ public class CellsController : MonoBehaviour
                 imageTwo.transform.SetParent(_selectedCells[0].transform);
                 _selectedCells[0].CellType = _selectedCells[1].CellType;
                 _selectedCells[1].CellType = tempType;
-                var cellList = new List<Cell> {_selectedCells[1]};
-                _popCells = CheckCellsNeighborhoodMatches(cellList, null);
-                PopMatchCells(_popCells);
-                Debug.Log("Cells in result list:");
-                foreach (var cell in _popCells)
+                var firstCellList = new List<Cell> {_selectedCells[0]};
+                var secondCellList = new List<Cell> {_selectedCells[1]};
+                if (CheckCellsNeighborhoodMatches(secondCellList, new List<Cell>()).Count < 3 
+                    || CheckCellsNeighborhoodMatches(firstCellList, new List<Cell>()).Count < 3)
                 {
-                        Debug.Log(cell.Id);
+                       Swap(_selectedCells);
+                       _cellsMove = false;
                 }
+                else
+                {
+                        OnCompleteSwapHandler();     
+                }
+        }
+
+        private async void Swap(List<Cell> selectedCells)
+        {
+                var cellOnePosition = selectedCells[0].Image.transform.position;
+                var cellTwoPosition = selectedCells[1].Image.transform.position;
+                var sequence = DOTween.Sequence();
+                sequence.Join(selectedCells[0].Image.transform.DOMove(cellTwoPosition, cellMoveTime));
+                sequence.Join(selectedCells[1].Image.transform.DOMove(cellOnePosition, cellMoveTime));
+                await sequence.Play().AsyncWaitForCompletion();
+                var imageOne = _selectedCells[0].Image;
+                var imageTwo = _selectedCells[1].Image;
+                var tempType = _selectedCells[0].CellType;
+                _selectedCells[0].Image = imageTwo;
+                _selectedCells[1].Image = imageOne;
+                imageOne.transform.SetParent(_selectedCells[1].transform);
+                imageTwo.transform.SetParent(_selectedCells[0].transform);
+                _selectedCells[0].CellType = _selectedCells[1].CellType;
+                _selectedCells[1].CellType = tempType;    
+        }
+
+        private void OnCompleteSwapHandler()
+        {
+                PopCells();
+                //var cellList = new List<Cell> {_selectedCells[1]};
+                //_popCells = CheckCellsNeighborhoodMatches(cellList, null);
+                //PopMatchCells(_popCells);
                 //_cellsMove = false;
         }
 
@@ -216,21 +245,58 @@ public class CellsController : MonoBehaviour
 
         #endregion
 
-        private void PopMatchCells(List<Cell> matchCells)
+        private async void PopCells()
         {
-                var sequence = DOTween.Sequence();
-                foreach (var matchCell in matchCells)
+                for (int y = 0; y < _rowsCellsLength.Length; y++)
                 {
-                        sequence.Join(matchCell.gameObject.transform.DOScale(Vector3.zero, cellsPopTime));
-                }
+                        for (int x = 0; x < _rowsCellsLength[y]; x++)
+                        {
+                                var checkCell = new List<Cell> {_cellsCoord[(x, y)]};
+                                var matchList = new List<Cell>();
+                                matchList = CheckCellsNeighborhoodMatches(checkCell, matchList);
+                                if (matchList.Count < 3) continue;
+                                //PopMatchCells(matchList);
+                                var minimizeCells = DOTween.Sequence();
+                                foreach (var matchCell in matchList)
+                                {
+                                        minimizeCells.Join(matchCell.gameObject.transform.DOScale(Vector3.zero, cellsPopTime));
+                                }
 
-                sequence.Play().OnComplete(ChangePoppedCells);
+                                await minimizeCells.Play().AsyncWaitForCompletion();
+                                
+                                var maximizeCells = DOTween.Sequence();
+                                foreach (var cell in matchList)
+                                {
+                                        var randomType = Random.Range(1, cellSprites.Length);
+                                        cell.SetImage = cellSprites[randomType];
+                                        cell.CellType = randomType switch
+                                        {
+                                                1 => CellType.First,
+                                                2 => CellType.Second,
+                                                3 => CellType.Third,
+                                                4 => CellType.Fourth,
+                                                5 => CellType.Fifth,
+                                                _ => cell.CellType
+                                        };
+                                        maximizeCells.Join(cell.transform.DOScale(Vector3.one, cellsPopTime));
+                                }
+
+                                await maximizeCells.Play().AsyncWaitForCompletion();
+                                _cellsMove = false;
+                        }  
+                }
+        }
+        
+        private async void PopMatchCells(List<Cell> matchCells)
+        {
+                
+                ChangePoppedCells(matchCells);
         }
 
-        private void ChangePoppedCells()
+        private async void ChangePoppedCells(List<Cell> matchCells)
         {
-                var sequence = DOTween.Sequence();
-                foreach (var cell in _popCells)
+                var maximizeCells = DOTween.Sequence();
+                foreach (var cell in matchCells)
                 {
                         var randomType = Random.Range(1, cellSprites.Length);
                         cell.SetImage = cellSprites[randomType];
@@ -242,10 +308,11 @@ public class CellsController : MonoBehaviour
                                 4 => CellType.Fourth,
                                 _ => cell.CellType
                         };
-                        sequence.Join(cell.transform.DOScale(Vector3.one, cellsPopTime));
+                        maximizeCells.Join(cell.transform.DOScale(Vector3.one, cellsPopTime));
                 }
 
-                sequence.Play().OnComplete(CompletePopCells);
+                await maximizeCells.Play().AsyncWaitForCompletion();
+                _cellsMove = false;
         }
 
         private void CompletePopCells()
