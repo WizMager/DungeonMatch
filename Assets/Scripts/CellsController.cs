@@ -125,8 +125,9 @@ public class CellsController : MonoBehaviour
                 imageTwo.transform.SetParent(_selectedCells[0].transform);
                 _selectedCells[0].CellType = _selectedCells[1].CellType;
                 _selectedCells[1].CellType = tempType;
-                //CheckMatches(_selectedCells[1]);
-                var list = StartCheck(_selectedCells[1]);
+                var cellList = new List<Cell> {_selectedCells[1]};
+                var list = Recurs(cellList, null);
+                Debug.Log("Cells in result list:");
                 foreach (var cell in list)
                 {
                         Debug.Log(cell.Id);
@@ -136,100 +137,78 @@ public class CellsController : MonoBehaviour
         }
 
         #endregion
-        
-        private List<Cell> StartCheck(Cell cell)
-        {
-                var cellsList = new List<Cell>{cell};
-                
-                Recurs(cellsList, cellsList);
-                return cellsList;
-        }
 
-        private void Recurs(List<Cell> neigh, List<Cell> cellsList)
+        private List<Cell> Recurs(List<Cell> neigh, List<Cell> cellsList)
         {
-                Debug.Log("Recurs");
-                if (neigh.Count <= 0) return;
+                var result = cellsList ?? new List<Cell> {neigh[0]};
+                if (neigh.Count <= 0) return result;
                 foreach (var cell in neigh)
                 {
-                        if (!cellsList.Contains(cell))
+                        if (!result.Contains(cell))
                         {
-                                cellsList.Add(cell);    
+                           result.Add(cell);     
                         }
-                        Recurs(CheckNeighborhoodCells(cell), cellsList);
+                        Recurs(CheckNeighborhoodCells(cell, result), result);
                 }
 
+                return result;
         }
         
-        private List<Cell> CheckNeighborhoodCells(Cell cell)
+        private List<Cell> CheckNeighborhoodCells(Cell cell, List<Cell> resultList)
         {
                 var type = cell.CellType;
                 var x = cell.XNumber;
                 var y = cell.YNumber;
-                var cells = new List<Cell>();
-                if (x > 0 && x < _rowsCellsLength[0] - 1)
+                var neighborhoodCells = new List<Cell>();
+                if (x > 0)
                 {
-                        Debug.Log($"{x} {y}");
-                        if (_cellsCoord[(x - 1, y)].CellType == type)
+                        var leftCell = _cellsCoord[(x - 1, y)];
+                        if (leftCell.CellType == type)
                         {
-                                if (!cells.Contains(cell))
+                                if (!resultList.Contains(leftCell))
                                 {
-                                        cells.Add(_cellsCoord[(x - 1, y)]);       
+                                        neighborhoodCells.Add(leftCell);       
                                 }
                         }
-                        
-                        if (_cellsCoord[(x + 1, y)].CellType == type)
-                        {
-                                if (!cells.Contains(cell))
-                                {
-                                        cells.Add(_cellsCoord[(x + 1, y)]);       
-                                }
-                        } 
                 }
 
-                // if (x < _rowsCellsLength[0] - 1)
-                // {
-                //         if (_cellsCoord[(x + 1, y)].CellType == type)
-                //         {
-                //                 if (!cells.Contains(cell))
-                //                 {
-                //                         cells.Add(_cellsCoord[(x + 1, y)]);       
-                //                 }
-                //         }    
-                // }
-                
-
-                if (y > 0 && y < _rowsCellsLength.Length - 1)
+                if (x < _rowsCellsLength[0] - 1)
                 {
-                        Debug.Log($"{x} {y}");
-                        if (_cellsCoord[(x , y - 1)].CellType == type)
+                        var rightCell = _cellsCoord[(x + 1, y)];
+                        if (rightCell.CellType == type)
                         {
-                                if (!cells.Contains(cell))
+                                if (!resultList.Contains(rightCell))
                                 {
-                                        cells.Add(_cellsCoord[(x, y - 1)]);       
+                                        neighborhoodCells.Add(rightCell);       
                                 }
-                        } 
-                        
-                        if (_cellsCoord[(x , y + 1)].CellType == type)
+                        }     
+                }
+
+                if (y > 0)
+                {
+                        var upCell = _cellsCoord[(x, y - 1)];
+                        if (upCell.CellType == type)
                         {
-                                if (!cells.Contains(cell))
+                                if (!resultList.Contains(upCell))
                                 {
-                                        cells.Add(_cellsCoord[(x, y + 1)]);      
+                                        neighborhoodCells.Add(upCell);       
+                                }
+                        }
+                }
+
+                if (y < _rowsCellsLength.Length - 1)
+                {
+                        var downCell = _cellsCoord[(x, y + 1)];
+                        if (downCell.CellType == type)
+                        {
+                                if (!resultList.Contains(downCell))
+                                {
+                                        neighborhoodCells.Add(downCell);      
                                 }
                         } 
                 }
-
-                // if (y < _rowsCellsLength.Length - 1)
-                // {
-                //         if (_cellsCoord[(x , y + 1)].CellType == type)
-                //         {
-                //                 if (!cells.Contains(cell))
-                //                 {
-                //                         cells.Add(_cellsCoord[(x, y + 1)]);      
-                //                 }
-                //         }     
-                // }
-
-                return cells;
+                
+                return neighborhoodCells;
         }
 
         private void OnDestroy()
