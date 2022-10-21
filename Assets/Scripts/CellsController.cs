@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -9,11 +8,13 @@ public class CellsController : MonoBehaviour
         [SerializeField] private RowsContainerComponent rowsContainerComponent;
         [SerializeField] private Sprite[] cellSprites;
         [SerializeField] private float cellMoveTime;
+        [SerializeField] private float cellsPopTime;
         private readonly Dictionary<int, Cell> _cells = new();
         private readonly Dictionary<(int x, int y), Cell> _cellsCoord = new ();
         private readonly List<Cell> _selectedCells = new();
         private bool _cellsMove;
         private int[] _rowsCellsLength;
+        private List<Cell> _popCells = new();
 
         private void Start()
         {
@@ -126,19 +127,21 @@ public class CellsController : MonoBehaviour
                 _selectedCells[0].CellType = _selectedCells[1].CellType;
                 _selectedCells[1].CellType = tempType;
                 var cellList = new List<Cell> {_selectedCells[1]};
-                var list = Recurs(cellList, null);
+                _popCells = CheckCellsNeighborhoodMatches(cellList, null);
+                PopMatchCells(_popCells);
                 Debug.Log("Cells in result list:");
-                foreach (var cell in list)
+                foreach (var cell in _popCells)
                 {
                         Debug.Log(cell.Id);
                 }
-                _selectedCells.Clear();
-                _cellsMove = false;
+                //_cellsMove = false;
         }
 
         #endregion
 
-        private List<Cell> Recurs(List<Cell> neigh, List<Cell> cellsList)
+        #region CheckMatches
+
+        private List<Cell> CheckCellsNeighborhoodMatches(List<Cell> neigh, List<Cell> cellsList)
         {
                 var result = cellsList ?? new List<Cell> {neigh[0]};
                 if (neigh.Count <= 0) return result;
@@ -148,7 +151,7 @@ public class CellsController : MonoBehaviour
                         {
                            result.Add(cell);     
                         }
-                        Recurs(CheckNeighborhoodCells(cell, result), result);
+                        CheckCellsNeighborhoodMatches(CheckNeighborhoodCells(cell, result), result);
                 }
 
                 return result;
@@ -210,6 +213,48 @@ public class CellsController : MonoBehaviour
                 
                 return neighborhoodCells;
         }
+
+        #endregion
+
+        private void PopMatchCells(List<Cell> matchCells)
+        {
+                var sequence = DOTween.Sequence();
+                foreach (var matchCell in matchCells)
+                {
+                        sequence.Join(matchCell.gameObject.transform.DOScale(Vector3.zero, cellsPopTime));
+                }
+
+                sequence.Play().OnComplete(ChangePoppedCells);
+        }
+
+        private void ChangePoppedCells()
+        {
+                var sequence = DOTween.Sequence();
+                foreach (var cell in _popCells)
+                {
+                        var randomType = Random.Range(1, cellSprites.Length);
+                        cell.SetImage = cellSprites[randomType];
+                        cell.CellType = randomType switch
+                        {
+                                1 => CellType.First,
+                                2 => CellType.Second,
+                                3 => CellType.Third,
+                                4 => CellType.Fourth,
+                                _ => cell.CellType
+                        };
+                        sequence.Join(cell.transform.DOScale(Vector3.one, cellsPopTime));
+                }
+
+                sequence.Play().OnComplete(CompletePopCells);
+        }
+
+        private void CompletePopCells()
+        {
+                _popCells.Clear();
+                _selectedCells.Clear();
+                _cellsMove = false;
+        }
+
 
         private void OnDestroy()
         {
