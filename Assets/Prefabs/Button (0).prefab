@@ -104,7 +104,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b062feeef87a483483c49f4292e5721f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  startCellImage: {fileID: 534163468142138132}
+  cellImage: {fileID: 534163468142138132}
   cellButton: {fileID: 4402204758324113599}
 --- !u!1 &8108273512635542081
 GameObject:
