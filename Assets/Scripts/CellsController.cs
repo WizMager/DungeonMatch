@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using DG.Tweening;
+using TMPro;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -7,6 +9,7 @@ public class CellsController : MonoBehaviour
 {
         [SerializeField] private RowsContainerComponent rowsContainerComponent;
         [SerializeField] private Sprite[] cellSprites;
+        [SerializeField] private TMP_Text scoreText;
         [SerializeField] private float cellMoveTime;
         [SerializeField] private float cellsPopTime;
         private readonly Dictionary<int, Cell> _cells = new();
@@ -14,6 +17,7 @@ public class CellsController : MonoBehaviour
         private readonly List<Cell> _selectedCells = new();
         private bool _cellsMove;
         private int[] _rowsCellsLength;
+        private int _score;
 
         private void Start()
         {
@@ -274,15 +278,43 @@ public class CellsController : MonoBehaviour
                                 matchList = CheckCellsMatches(checkCell, matchList);
 
                                 if (!CheckHorizontalVertical(_cellsCoord[(x, y)], matchList)) continue;
-                                
+                                var scoreCounter = 0;
+                                var scoreCell = 0;
+                                switch (matchList[0].CellType)
+                                {
+                                        case CellType.None:
+                                                break;
+                                        case CellType.First:
+                                                scoreCell = 1;
+                                                break;
+                                        case CellType.Second:
+                                                scoreCell = 2;
+                                                break;
+                                        case CellType.Third:
+                                                scoreCell = 3;
+                                                break;
+                                        case CellType.Fourth:
+                                                scoreCell = 4;
+                                                break;
+                                        case CellType.Fifth:
+                                                scoreCell = 5;
+                                                break;
+                                        case CellType.Sixth:
+                                                scoreCell = 6;
+                                                break;
+                                        default:
+                                                throw new ArgumentOutOfRangeException();
+                                }
                                 var minimizeCells = DOTween.Sequence();
                                 foreach (var matchCell in matchList)
                                 {
+                                        scoreCounter += scoreCell;
                                         minimizeCells.Join(matchCell.gameObject.transform.DOScale(Vector3.zero, cellsPopTime));
                                 }
 
                                 await minimizeCells.Play().AsyncWaitForCompletion();
-                                
+                                _score += scoreCounter;
+                                scoreText.text = $"Score: {_score}";
                                 var maximizeCells = DOTween.Sequence();
                                 foreach (var cell in matchList)
                                 {
