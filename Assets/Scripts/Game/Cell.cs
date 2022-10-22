@@ -82,13 +82,13 @@ namespace Game
                         get => _cellType;
                         set
                         {
-                                if (value > 0)
+                                if (value < 0)
                                 {
-                                        _cellType = value;    
+                                        Debug.Log("Cell type can't be negative");
                                 }
                                 else
                                 {
-                                        Debug.Log("Cell type can't be negative");
+                                        _cellType = value;    
                                 }
                         
                         }
