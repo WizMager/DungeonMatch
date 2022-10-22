@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
 public class CellsController : MonoBehaviour
@@ -10,6 +12,7 @@ public class CellsController : MonoBehaviour
         [SerializeField] private RowsContainerComponent rowsContainerComponent;
         [SerializeField] private Sprite[] cellSprites;
         [SerializeField] private TMP_Text scoreText;
+        [SerializeField] private Button toMenuButton;
         [SerializeField] private float cellMoveTime;
         [SerializeField] private float cellsPopTime;
         private readonly Dictionary<int, Cell> _cells = new();
@@ -21,7 +24,13 @@ public class CellsController : MonoBehaviour
 
         private void Start()
         {
+                toMenuButton.onClick.AddListener(ReturnMenu);
               Initialization(rowsContainerComponent);
+        }
+
+        private void ReturnMenu()
+        {
+                SceneManager.LoadScene(0);
         }
 
         private void Initialization(RowsContainerComponent rowsContainerValue)
@@ -341,6 +350,7 @@ public class CellsController : MonoBehaviour
 
         private void OnDestroy()
         {
+                toMenuButton.onClick.RemoveListener(ReturnMenu);
                 foreach (var cell in _cells.Values)
                 {
                         cell.OnCellClicked -= OnCellClickedHandler;
