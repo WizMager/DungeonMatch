@@ -10,13 +10,13 @@ namespace Game
         public Action<List<Cell>> OnSuccessSwap;
         private readonly List<Cell> _selectedCells = new();
         private readonly float _swapTime;
-        private readonly CheckCellsTypeMatches _checkCellsTypeMatches;
+        private readonly CheckCells _checkCells;
         private bool _cellsSwap;
 
-        public CellsSwapper(float swapTime, CheckCellsTypeMatches checkCellsTypeMatches)
+        public CellsSwapper(float swapTime, CheckCells checkCells)
         {
             _swapTime = swapTime;
-            _checkCellsTypeMatches = checkCellsTypeMatches;
+            _checkCells = checkCells;
         }
         
         public void Swap(Cell newCell)
@@ -75,12 +75,12 @@ namespace Game
             await SwapCellsValues(firstSelectedCell, secondSelectedCell);
             var firstCellList = new List<Cell> {firstSelectedCell};
             var secondCellList = new List<Cell> {secondSelectedCell};
-            var matchFirstCellTypeList = _checkCellsTypeMatches.CheckCellsMatches(firstCellList);
-            var matchSecondCellTypeList = _checkCellsTypeMatches.CheckCellsMatches(secondCellList);
+            var matchFirstCellTypeList = _checkCells.CheckCellsMatches(firstCellList);
+            var matchSecondCellTypeList = _checkCells.CheckCellsMatches(secondCellList);
             var checkFirstMatchList =
-                _checkCellsTypeMatches.CheckHorizontalVertical(firstSelectedCell, matchFirstCellTypeList);
+                _checkCells.CheckHorizontalVertical(firstSelectedCell, matchFirstCellTypeList);
             var checkSecondMatchList =
-                _checkCellsTypeMatches.CheckHorizontalVertical(secondSelectedCell, matchSecondCellTypeList);
+                _checkCells.CheckHorizontalVertical(secondSelectedCell, matchSecondCellTypeList);
             if (checkFirstMatchList || checkSecondMatchList)
             {
                 if (checkFirstMatchList && secondSelectedCell)

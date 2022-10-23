@@ -466,12 +466,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rowsContainerComponent: {fileID: 1025103706}
-  cellSprites:
-  - {fileID: 21300000, guid: b6da46610f2e67c47ab4f5011422203a, type: 3}
-  - {fileID: 21300000, guid: 7c317a7b1aef9e64e9ca3d82d64f843c, type: 3}
-  - {fileID: 21300000, guid: 67d92be28ed43314bbaf848a1d873f6c, type: 3}
-  - {fileID: 21300000, guid: 2c523fa3ca4e1fc4b9a5713e504e6cce, type: 3}
-  - {fileID: 21300000, guid: 3faa68d4e2f05f04786133598667ac36, type: 3}
+  cellsValues:
+  - {fileID: 11400000, guid: 4bc84b3db047caf4f82c7b3333798b99, type: 2}
+  - {fileID: 11400000, guid: 6fcf88ba18e95474fa2539bc4a923856, type: 2}
+  - {fileID: 11400000, guid: bbc2809b9c2fb574ea77a248109d800e, type: 2}
+  - {fileID: 11400000, guid: a380dd060dc165f4b9f8d7ca1c54e512, type: 2}
+  - {fileID: 11400000, guid: c7e122e19ee487247a7130ead86c1c95, type: 2}
   scoreText: {fileID: 1999549159}
   mainMenuButton: {fileID: 1108374747}
   cellSwapTime: 0.5

@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.UI;
+using Utils;
 
 namespace Game
 {
@@ -12,7 +13,7 @@ namespace Game
                 private int _xNumber;
                 private int _yNumber;
                 private int _id;
-                private int _cellType;
+                private CellType _cellType;
 
                 public Image Image
                 {
@@ -77,20 +78,13 @@ namespace Game
                                 Image.sprite = value;
                         }
                 }
-                public int CellType
+                public CellType CellType
                 {
                         get => _cellType;
                         set
                         {
-                                if (value < 0)
-                                {
-                                        Debug.Log("Cell type can't be negative");
-                                }
-                                else
-                                {
-                                        _cellType = value;    
-                                }
-                        
+                                if (value == _cellType) return;
+                                _cellType = value;
                         }
                 }
 

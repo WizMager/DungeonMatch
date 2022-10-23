@@ -1,23 +1,25 @@
 ﻿using System.Collections.Generic;
 using ComponentScripts;
 using UnityEngine;
+using Utils;
 
 namespace Game
 {
-    public class CellsModel
+    public class CellsData
     {
-        private readonly Dictionary<(int x, int y), Cell> _cellsCoordinate = new ();
-
+        private readonly CellValue[] _cellsValues;
+        
         public Dictionary<(int x, int y), Cell> CellsCoordinates { get; } = new();
         public Dictionary<int, Cell> IdCells { get; } = new ();
         public int[] RowsCellsCount { get; private set; }
 
-        public CellsModel(RowsContainerComponent rowsContainerComponent, Sprite[] sprites)
+        public CellsData(RowsContainerComponent rowsContainerComponent, CellValue[] cellsValues)
         {
-            InitializeCells(rowsContainerComponent.GetRowsContainers, sprites);
+            _cellsValues = cellsValues;
+            InitializeCells(rowsContainerComponent.GetRowsContainers);
         }
 
-        private void InitializeCells(RowCellContainerComponent[] rows, Sprite[] sprites)
+        private void InitializeCells(RowCellContainerComponent[] rows)
         {
             RowsCellsCount = new int[rows.Length];
             for (int y = 0; y < rows.Length; y++)
@@ -30,9 +32,9 @@ namespace Game
                     cell.XNumber = x;
                     cell.YNumber = y;
                     var id = x + y * rowCells.Length;
-                    var randomType = Random.Range(0, sprites.Length);
-                    cell.ChangeSprite = sprites[randomType];
-                    cell.CellType = randomType;
+                    var randomType = Random.Range(0, _cellsValues.Length);
+                    cell.ChangeSprite = _cellsValues[randomType].sprite;
+                    cell.CellType = _cellsValues[randomType].cellType;
                     cell.Id = id;
                     IdCells.Add(id, cell);
                     CellsCoordinates.Add((x, y), cell);
@@ -43,6 +45,21 @@ namespace Game
         public Cell GetCell(int id)
         {
             return IdCells[id];
+        }
+
+        public Cell GetCell((int x, int y) coordinates)
+        {
+            return CellsCoordinates[coordinates];
+        }
+
+        public void ChangeCellsSprite(List<Cell> cells)
+        {
+            foreach (var cell in cells)
+            {
+                var randomType = Random.Range(0, _cellsValues.Length);
+                cell.ChangeSprite = _cellsValues[randomType].sprite;
+                cell.CellType = _cellsValues[randomType].cellType;
+            }
         }
     }
 }

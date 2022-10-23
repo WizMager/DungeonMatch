@@ -1,17 +1,14 @@
 ﻿using System.Collections.Generic;
-using UnityEngine;
 
 namespace Game
 {
-        public class CheckCellsTypeMatches
+        public class CheckCells
         {
-                private readonly int[] _rowsCells;
-                private readonly Dictionary<(int x, int y), Cell> _cellsCoordinate;
+                private readonly CellsData _cellsData;
 
-                public CheckCellsTypeMatches(CellsModel cellsModel)
+                public CheckCells(CellsData cellsData)
                 {
-                        _rowsCells = cellsModel.RowsCellsCount;
-                        _cellsCoordinate = cellsModel.CellsCoordinates;
+                        _cellsData = cellsData;
                 }
 
                 public List<Cell> CheckCellsMatches(List<Cell> neighborhoodCellsList, List<Cell> previousResultList = null)
@@ -39,7 +36,7 @@ namespace Game
                         var neighborhoodCells = new List<Cell>();
                         if (x > 0)
                         {
-                                var leftCell = _cellsCoordinate[(x - 1, y)];
+                                var leftCell = _cellsData.CellsCoordinates[(x - 1, y)];
                                 if (leftCell.CellType == type)
                                 {
                                         if (!resultList.Contains(leftCell))
@@ -49,9 +46,9 @@ namespace Game
                                 }
                         }
                         
-                        if (x < _rowsCells[0] - 1)
+                        if (x < _cellsData.RowsCellsCount[0] - 1)
                         {
-                                var rightCell = _cellsCoordinate[(x + 1, y)];
+                                var rightCell = _cellsData.CellsCoordinates[(x + 1, y)];
                                 if (rightCell.CellType == type)
                                 {
                                         if (!resultList.Contains(rightCell))
@@ -63,7 +60,7 @@ namespace Game
                         
                         if (y > 0)
                         {
-                                var upCell = _cellsCoordinate[(x, y - 1)];
+                                var upCell = _cellsData.CellsCoordinates[(x, y - 1)];
                                 if (upCell.CellType == type)
                                 {
                                         if (!resultList.Contains(upCell))
@@ -73,9 +70,9 @@ namespace Game
                                 }
                         }
                         
-                        if (y < _rowsCells.Length - 1)
+                        if (y < _cellsData.RowsCellsCount.Length - 1)
                         {
-                                var downCell = _cellsCoordinate[(x, y + 1)];
+                                var downCell = _cellsData.CellsCoordinates[(x, y + 1)];
                                 if (downCell.CellType == type)
                                 {
                                         if (!resultList.Contains(downCell))
@@ -107,6 +104,31 @@ namespace Game
                                 }
                         }
                         return horizontalLineCells >= 3 || verticalLineCells >= 3;
+                }
+
+                public bool CheckPopAvailable()
+                {
+                        for (int y = 0; y < _cellsData.RowsCellsCount.Length; y++)
+                        {
+                                for (int x = 0; x < _cellsData.RowsCellsCount[y]; x++)
+                                {
+                                        if (CheckCellMatchPop(_cellsData.GetCell((x, y))) != null)
+                                        {
+                                                return true;
+                                        }
+                                }
+                        }
+
+                        return false;
+                }
+
+                public List<Cell> CheckCellMatchPop(Cell cell)
+                {
+                        var checkCell = new List<Cell> {cell};
+                        var matchList = new List<Cell>();
+                        matchList = CheckCellsMatches(checkCell, matchList);
+
+                        return CheckHorizontalVertical(cell, matchList) ? matchList : null;
                 }
         }
 }
