@@ -71,8 +71,8 @@ public class Cell : MonoBehaviour
         {
                 set
                 {
-                        if (Image.sprite == value) return;
-                        Image.sprite = value;
+                        if (startCellImage.sprite == value) return;
+                        startCellImage.sprite = value;
                 }
         }
         public CellType CellType

@@ -23,9 +23,9 @@ public class CellsController : MonoBehaviour
         private int _score;
 
         private void Start()
-        {
-                toMenuButton.onClick.AddListener(ReturnMenu);
-              Initialization(rowsContainerComponent);
+        { 
+                toMenuButton.onClick.AddListener(ReturnMenu); 
+                Initialization(rowsContainerComponent);
         }
 
         private void ReturnMenu()
@@ -47,7 +47,7 @@ public class CellsController : MonoBehaviour
                                 cell.XNumber = x;
                                 cell.YNumber = y;
                                 var id = x + y * rowCells.Length;
-                                var randomType = Random.Range(1, cellSprites.Length);
+                                var randomType = Random.Range(0, cellSprites.Length);
                                 cell.SetImage = cellSprites[randomType];
                                 cell.CellType = randomType switch
                                 {
